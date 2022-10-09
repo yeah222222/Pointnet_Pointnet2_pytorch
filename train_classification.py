@@ -51,8 +51,8 @@ def inplace_relu(m):
 
 def test(model, loader, num_class=40):
     mean_correct = []
-    class_acc = np.zeros((num_class, 3))
-    classifier = model.eval()
+    class_acc = np.zeros((num_class, 3))#类别数目*3
+    classifier = model.eval()#模型运行
 
     for j, (points, target) in tqdm(enumerate(loader), total=len(loader)):
 
@@ -60,8 +60,8 @@ def test(model, loader, num_class=40):
             points, target = points.cuda(), target.cuda()
 
         points = points.transpose(2, 1)
-        pred, _ = classifier(points)
-        pred_choice = pred.data.max(1)[1]
+        pred, _ = classifier(points)#_是什么
+        pred_choice = pred.data.max(1)[1]#找出最大的可能性
 
         for cat in np.unique(target.cpu()):
             classacc = pred_choice[target == cat].eq(target[target == cat].long().data).cpu().sum()
@@ -176,9 +176,9 @@ def main(args):
             optimizer.zero_grad()
 
             points = points.data.numpy()
-            points = provider.random_point_dropout(points)
-            points[:, :, 0:3] = provider.random_scale_point_cloud(points[:, :, 0:3])
-            points[:, :, 0:3] = provider.shift_point_cloud(points[:, :, 0:3])
+            points = provider.random_point_dropout(points)#随即丢弃点云中的点
+            points[:, :, 0:3] = provider.random_scale_point_cloud(points[:, :, 0:3])#将点云的所有点随机缩放，也就是整个物体的放大和缩小
+            points[:, :, 0:3] = provider.shift_point_cloud(points[:, :, 0:3])#Batch_size内的每一行元素x,y,z都加上一行随机值范围在[-0.1,0.1]内的[offset_x, offset_y, offset_z]
             points = torch.Tensor(points)
             points = points.transpose(2, 1)
 
@@ -194,11 +194,12 @@ def main(args):
             loss.backward()
             optimizer.step()
             global_step += 1
-
-        train_instance_acc = np.mean(mean_correct)
+            #以上是每一个batchsize训练了每一轮的结果
+            
+        train_instance_acc = np.mean(mean_correct)#这是训练了一轮之后的训练的平均正确率
         log_string('Train Instance Accuracy: %f' % train_instance_acc)
 
-        with torch.no_grad():
+        with torch.no_grad():#开始训练集
             instance_acc, class_acc = test(classifier.eval(), testDataLoader, num_class=num_class)
 
             if (instance_acc >= best_instance_acc):
