@@ -54,13 +54,13 @@ def test(model, loader, num_class=40):
     class_acc = np.zeros((num_class, 3))#类别数目*3
     classifier = model.eval()#模型运行
 
-    for j, (points, target) in tqdm(enumerate(loader), total=len(loader)):
+    for j, (points, target) in tqdm(enumerate(loader), total=len(loader)):#是一个batchsize一个batchsize搞嘛
 
         if not args.use_cpu:
             points, target = points.cuda(), target.cuda()
 
         points = points.transpose(2, 1)
-        pred, _ = classifier(points)#_是什么
+        pred, _ = classifier(points)#‘_’是什么
         pred_choice = pred.data.max(1)[1]#找出最大的可能性
 
         for cat in np.unique(target.cpu()):
@@ -98,7 +98,7 @@ def main(args):
         exp_dir = exp_dir.joinpath(args.log_dir)
     exp_dir.mkdir(exist_ok=True)
     checkpoints_dir = exp_dir.joinpath('checkpoints/')
-    checkpoints_dir.mkdir(exist_ok=True)
+    checkpoints_dir.mkdir(exist_ok=True)#mkdir()函数以mode方式创建一个以参数pathname命名的目录，mode定义新创建目录的权限。
     log_dir = exp_dir.joinpath('logs/')
     log_dir.mkdir(exist_ok=True)
 
@@ -121,7 +121,7 @@ def main(args):
     train_dataset = ModelNetDataLoader(root=data_path, args=args, split='train', process_data=args.process_data)
     test_dataset = ModelNetDataLoader(root=data_path, args=args, split='test', process_data=args.process_data)
     trainDataLoader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=10, drop_last=True)
-    testDataLoader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=10)
+    testDataLoader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=10)#num_workers是啥
 
     '''MODEL LOADING'''
     num_class = args.num_category
@@ -166,7 +166,7 @@ def main(args):
 
     '''TRANING'''
     logger.info('Start training...')
-    for epoch in range(start_epoch, args.epoch):
+    for epoch in range(start_epoch, args.epoch):#这个训练过程global epoch,epoch
         log_string('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
         mean_correct = []
         classifier = classifier.train()
@@ -194,12 +194,13 @@ def main(args):
             loss.backward()
             optimizer.step()
             global_step += 1
-            #以上是每一个batchsize训练了每一轮的结果
+            #以上是每一个batchsize训练了每一轮的结果?
+        #这个内置的for是把上面的dataloader的所有的batchsize训练了
             
         train_instance_acc = np.mean(mean_correct)#这是训练了一轮之后的训练的平均正确率
         log_string('Train Instance Accuracy: %f' % train_instance_acc)
 
-        with torch.no_grad():#开始训练集
+        with torch.no_grad():#开始测试集
             instance_acc, class_acc = test(classifier.eval(), testDataLoader, num_class=num_class)
 
             if (instance_acc >= best_instance_acc):
