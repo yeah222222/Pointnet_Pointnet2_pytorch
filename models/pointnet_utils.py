@@ -34,14 +34,14 @@ class STN3d(nn.Module):
 
         x = F.relu(self.bn4(self.fc1(x)))#全连接层 1024个特征变为512个
         x = F.relu(self.bn5(self.fc2(x)))#全连接层 512个特征变为256个
-        x = self.fc3(x)#最后把256个特征值映射到样本标记空间？？？？？？全连接层作用是啥？
+        x = self.fc3(x)#最后把256个特征值映射到样本标记空间？全连接层作用是啥？不理解啊
 
         iden = Variable(torch.from_numpy(np.array([1, 0, 0, 0, 1, 0, 0, 0, 1]).astype(np.float32))).view(1, 9).repeat(
             batchsize, 1) 
         if x.is_cuda:
             iden = iden.cuda()
         x = x + iden #为了把每一个x加上[1, 0, 0, 0, 1, 0, 0, 0, 1]
-        x = x.view(-1, 3, 3) #展平为一个3*3的 ????这玩意有什么用啊
+        x = x.view(-1, 3, 3) #展平为一个3*3的什么呢?这有什么用啊？
         return x
 
 
@@ -81,7 +81,7 @@ class STNkd(nn.Module):
         if x.is_cuda:
             iden = iden.cuda()
         x = x + iden
-        x = x.view(-1, self.k, self.k) #k*k的玩意，这玩意有什么用啊？
+        x = x.view(-1, self.k, self.k) #balabala*k*k的，这有什么用啊？
         return x
 
 
